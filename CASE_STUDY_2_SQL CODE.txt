@@ -1,0 +1,86 @@
+A.	User Engagement: To measure the activeness of a user. Measuring if the user finds quality in a product/service.
+	Your task: Calculate the weekly user engagement?
+	SQL code:
+	SELECT 
+	COUNT(DISTINCT(user_id)) as total_user,
+	WEEK(occured_at) as week_num
+	FROM events
+	WHERE event_type like '%engagement%' 
+	GROUP BY 2;
+
+B.	User Growth: Amount of users growing over time for a product.
+	Your task: Calculate the user growth for product?
+SELECT
+    YEAR(created_at) AS year_num,
+    MONTH(created_at) AS month_num,
+    COUNT(DISTINCT user_id) AS users_added
+  FROM
+    users
+  WHERE
+    state LIKE '%active%'
+  GROUP BY
+    year_num,
+    month_num
+  ORDER BY
+    year_num,
+    month_num;
+		
+C. Weekly Retention: Users getting retained weekly after signing-up for a product.
+	Your task: Calculate the weekly retention of users-sign up cohort?
+
+	/*weekly retention*/
+USE trainity;
+SELECT first_week as "signup_week_num",
+SUM(CASE WHEN retention_week_num = 0 THEN 1 ELSE 0 END) AS 'week_0',
+SUM(CASE WHEN retention_week_num = 1 THEN 1 ELSE 0 END) AS 'week_1',
+SUM(CASE WHEN retention_week_num = 2 THEN 1 ELSE 0 END) AS 'week_2',
+SUM(CASE WHEN retention_week_num = 3 THEN 1 ELSE 0 END) AS 'week_3',
+SUM(CASE WHEN retention_week_num = 4 THEN 1 ELSE 0 END) AS 'week_4',
+SUM(CASE WHEN retention_week_num = 5 THEN 1 ELSE 0 END) AS 'week_5',
+SUM(CASE WHEN retention_week_num = 6 THEN 1 ELSE 0 END) AS 'week_6',
+SUM(CASE WHEN retention_week_num = 7 THEN 1 ELSE 0 END) AS 'week_7',
+SUM(CASE WHEN retention_week_num = 8 THEN 1 ELSE 0 END) AS 'week_8',
+SUM(CASE WHEN retention_week_num = 9 THEN 1 ELSE 0 END) AS 'week_9',
+SUM(CASE WHEN retention_week_num = 10 THEN 1 ELSE 0 END) AS 'week_10',
+SUM(CASE WHEN retention_week_num = 11 THEN 1 ELSE 0 END) AS 'week_11',
+SUM(CASE WHEN retention_week_num = 12 THEN 1 ELSE 0 END) AS 'week_12',
+SUM(CASE WHEN retention_week_num = 13 THEN 1 ELSE 0 END) AS 'week_13',
+SUM(CASE WHEN retention_week_num = 14 THEN 1 ELSE 0 END) AS 'week_14',
+SUM(CASE WHEN retention_week_num = 15 THEN 1 ELSE 0 END) AS 'week_15',
+SUM(CASE WHEN retention_week_num = 16 THEN 1 ELSE 0 END) AS 'week_16',
+SUM(CASE WHEN retention_week_num = 17 THEN 1 ELSE 0 END) AS 'week_17',
+SUM(CASE WHEN retention_week_num = 18 THEN 1 ELSE 0 END) AS 'week_18'
+FROM 
+(SELECT sw.user_id, sw.signin_week_num,fw.first_week, 
+sw.signin_week_num - fw.first_week as retention_week_num
+FROM
+(SELECT user_id, 
+WEEK(occured_at) as signin_week_num from events
+group by user_id,signin_week_num) sw,
+(SELECT user_id, 
+MIN(WEEK(occured_at)) as first_week from events
+group by user_id) fw
+WHERE sw.user_id = fw.user_id ) final_data 
+GROUP BY first_week
+ORDER BY first_week;
+
+
+D.	Your task: Calculate the weekly engagement per device?
+SELECT * FROM 
+(SELECT COUNT(distinct (user_id)) as users_engaged, device, WEEK(occured_at) as week_num
+FROM events
+WHERE event_type like '%engagement%'
+GROUP BY device, week_num
+ORDER BY week_num) sub;
+
+
+E. Email Engagement: Users engaging with the email service.
+	Your task: Calculate the email engagement metrics?
+SELECT WEEK(occured_at) as week_num,
+    ROUND(COUNT(CASE WHEN action like '%email_open%' THEN user_id ELSE NULL END) / COUNT(user_id) * 100, 1) as email_open_rate,
+    ROUND(COUNT(CASE WHEN action like '%sent_weekly_digest%' THEN user_id ELSE NULL END) / COUNT(user_id) * 100, 1) as weekly_digest_rate,
+    ROUND(COUNT(CASE WHEN action like '%sent_reengagement_email%' THEN user_id ELSE NULL END) / COUNT(user_id) * 100, 1) as reengagement_rate,
+    ROUND(COUNT(CASE WHEN action like '%email_clickthrough%' THEN user_id ELSE NULL END) / COUNT(user_id) * 100, 1) as clickthrough_rate
+FROM email_events
+GROUP BY week_num
+ORDER BY week_num;
